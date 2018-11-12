@@ -33,10 +33,11 @@
 }
 
 .zoneComment{
-	position: relative;
-	width: 50%;
+	/*position: relative;*/
+	
 }
 
 .zoneComment:hover .croix{
-	display: block;
+	/*display: block;*/
 }
+
