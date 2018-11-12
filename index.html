@@ -9,39 +9,54 @@
 	margin:3px;
 	border:none;
 	resize:none;
-	width:90%;
+	
 }
 
 #contenu textarea {
 	border:1px solid black;
 }
 
-#contenu p:hover {
+
+
+
+#contenu div:hover p{
 	border:1px dashed black; 
 	cursor:pointer;
+}
+.croix{
+	position: absolute;
+	top: -7px;
+	right: -7px;
+	width: 15px!important;
+	height:15px;
+	display: none;
 }
 .btnPlus {
 	display:inline; 
 }
 .red *{ color:red;}
 .blue *{ color:blue;}
+.zoneComment{
+	position: relative;
+	width: 50%;
+}
+
+.zoneComment:hover .croix{
+	display: block;
+}
+
 </style>
 
 
 <script>
 
-$( "#mySliderDiv" ).slider({
-    orientation: "vertical",
-    min: 0,
-    max: 150,
-    value: 50
-});
 
 // TODO : préparer un "composant" boutonPlus
 // qui insère des P. en position haute ou basse 
 // suivant une méta-donnée "position"
 
-var jP= $("<p>").html("Nouveau");
+var jP= $("<div>").html("<p>Nouveau</p>").addClass("zoneComment");
+
 
 var composantBtnP = $("<div>")
 		.addClass("btnPlus")
@@ -52,21 +67,29 @@ var composantBtnP = $("<div>")
 				.click(function(){
 					var contenu = $(this).next().val(); 
 					$(this).next().val("");
-					var jNextP = jP.clone(); 
-					if (contenu) jNextP.html(contenu);
+					var jNextP = jP.clone();
 
+					if (contenu) jNextP.html("<p>"+ contenu +"</p>");
+					
 					// la zone d'insertion 
 					// dépend de la méta-donnée "top"
 					// portée par le composant 
 					if ($(this).parent().data("top"))
+						
 						$("#contenu").prepend(jNextP); 
+						
 					else 
 						$("#contenu").append(jNextP); 
+					jNextP.append("<img class='croix' src='resources/croix.png' />");
+					
+					
 				})
+				
 		)
 		.append(
 				$("<input type='text' />")
-		); 
+		);
+	
 
 
 $(document).ready(function (){
@@ -81,11 +104,7 @@ $(document).ready(function (){
 							"padding": "5px" ,
 							"margin" : "5px"})
 		)
-		/*.after(composantBtnP
-					.clone(true)
-					.addClass("blue")
-					.data("top",false)
-		); */
+
 
 	// 2)  Passage en mode édition des P. insérés 
 	// clic => le P. se transforme en textarea avec le mm contenu 
@@ -110,6 +129,10 @@ $(document).ready(function (){
     $("#contenu" ).sortable({
       revert: true
     });
+    //$(".zoneComment").append('<img class="croix" src="resources/croix.png" />');
+
+
+    
 
 	// Réagir aux appuis sur ENTREE dans les txtarea 
 	$(document).on(	"keydown", "#contenu textarea", function (contexte){
@@ -145,6 +168,7 @@ $(document).ready(function (){
 		});  
 
 	});
+	 
 
 
 	//fonction de trie des commentaires en jQuery UI
@@ -167,7 +191,7 @@ $(document).ready(function (){
 <body>
 
 <div id="contenu">
-
+	
 </div>
 
 </body>
