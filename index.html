@@ -1,68 +1,23 @@
+<link rel="stylesheet" type="text/CSS" href="style.css">
 <script src="resources/jquery-3.3.1.min.js"></script>
 <link rel="stylesheet" href="resources/jquery-ui-1.12.1.custom/jquery-ui.min.css">
+<link rel="stylesheet" type="text/CSS" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
 <script src="resources/jquery-ui-1.12.1.custom/external/jquery/jquery.js"></script>
 <script src="resources/jquery-ui-1.12.1.custom/jquery-ui.min.js"></script>
-<style>
-
-#contenu *  {
-	padding:3px;
-	margin:3px;
-	border:none;
-	resize:none;
-	
-}
-
-#contenu textarea {
-	border:1px solid black;
-}
-
-
-
-
-#contenu div:hover p{
-	border:1px dashed black; 
-	cursor:pointer;
-}
-.croix{
-	position: absolute;
-	top: -7px;
-	right: -7px;
-	width: 15px!important;
-	height:15px;
-	display: none;
-}
-.btnPlus {
-	display:inline; 
-}
-.red *{ color:red;}
-.blue *{ color:blue;}
-.zoneComment{
-	position: relative;
-	width: 50%;
-}
-
-.zoneComment:hover .croix{
-	display: block;
-}
-
-</style>
-
-
 <script>
 
 
-// TODO : préparer un "composant" boutonPlus
-// qui insère des P. en position haute ou basse 
-// suivant une méta-donnée "position"
+
+//Variable contenant le commentaire pa défaut
 
 var jP= $("<div>").html("<p>Nouveau</p>").addClass("zoneComment");
 
 
+//Composant Bouton Plus qui insère les divs contenant les commentaires
 var composantBtnP = $("<div>")
-		.addClass("btnPlus")
+		.addClass("btnPlus row")
 		.data("top",true)
-		.append(
-				$("<input type='button'/>")
+		.append($("<input class='btn btn-info col-sm-2 offset-2' type='button'/>")
 				.val("+")
 				.click(function(){
 					var contenu = $(this).next().val(); 
@@ -70,24 +25,16 @@ var composantBtnP = $("<div>")
 					var jNextP = jP.clone();
 
 					if (contenu) jNextP.html("<p>"+ contenu +"</p>");
-					
-					// la zone d'insertion 
-					// dépend de la méta-donnée "top"
-					// portée par le composant 
 					if ($(this).parent().data("top"))
-						
 						$("#contenu").prepend(jNextP); 
-						
 					else 
 						$("#contenu").append(jNextP); 
-					jNextP.append("<img class='croix' src='resources/croix.png' />");
-					
-					
+					jNextP.append("<img class='croix' src='resources/croix.png' />"); //insertion de la croix pouvant supprimer le commentaire
 				})
 				
 		)
-		.append(
-				$("<input type='text' />")
+		.append(//Champs texte permettant d'écrire le commentaire
+				$("<input class='col-sm-5 form-control' type='text' placeholder='ecrivez un commentaire'/>")
 		);
 	
 
@@ -97,12 +44,7 @@ $(document).ready(function (){
 
 	// 1) ajouter les éléments d'interaction à la page 
 	$("#contenu")
-		.before(composantBtnP
-					.clone(true)
-					.addClass("red")
-					.css({	"border":"1px solid red", 
-							"padding": "5px" ,
-							"margin" : "5px"})
+		.before(composantBtnP.clone(true)
 		)
 
 
@@ -115,45 +57,38 @@ $(document).ready(function (){
 		// fonction appelee lors d'un clic sur un P
 		// dans le div de contenu 
 		var contenu = $(this).html(); // recup contenu 
-		var jTa = $("<textarea>")
+		var jTa = $("<textarea class='form-control'>")
 					.val(contenu)
 					.data("contenuInitial",contenu); 
 		// prépa txtarea
 		// AJOUT d'une méta-donnée 
-		
 		$(this).replaceWith(jTa); // insertion txtarea
-		jTa.focus(); // .select();
-		
+		jTa.select();
 	}); 
-	
+
+	//fonction permettant de réordonner les commentaires
     $("#contenu" ).sortable({
       revert: true
     });
-    //$(".zoneComment").append('<img class="croix" src="resources/croix.png" />');
-
 
     
 
 	// Réagir aux appuis sur ENTREE dans les txtarea 
-	$(document).on(	"keydown", "#contenu textarea", function (contexte){
-		// quelle est la touche appuyée ??
-		// en JQuery, tous les gestionnaires d'evenements 
-		// sont destinataires d'un objet event en param. 
-		// prop code ascii de la touche : code vaudra "Enter"
-		
-		console.log(contexte.which);
-		if (contexte.which != 13) return ;
+	$(document).on(	"keydown", "#contenu textarea", function (contexte){	
 
+	//afficher le code de la touche appuyée	
+		//console.log(contexte.which);
+		//insérer le nouveau contenu si la touche ENTRER est appuyée pendant la réédition
+		if (contexte.which != 13) return ;
 		var contenu = $(this).val(); // recup contenu 
 		var jPar = $("<p>").html(contenu); // prépa P
 		$(this).replaceWith(jPar); // insertion P
 	}); 
 
 
-	// 3) "ESC" => toutes les éditions en cours sont annulées
+	// si la touche "ESC" => toutes les éditions en cours sont annulées
 	// les contenus des textarea sont restaurés aux valeurs
 	// initiales - elles avaient été stockées par la méthode .data()
-	// itérer sur un ensemble : $(sel).each(fonction)
 
 	$(document).keyup(function(contexte){
 		if (contexte.which != 27) return;
@@ -168,14 +103,12 @@ $(document).ready(function (){
 		});  
 
 	});
-	 
 
+	//fonction permettant de supprimer un commentaire
 
-	//fonction de trie des commentaires en jQuery UI
-	/*$( function() {
-    $( "#contenu" ).sortable({
-      revert: true
-    });*/
+	$(document).on("click", ".croix", function(){
+		console.log("on supprime le commentaire");
+	});
 
 	// DEBUG 
 	$(document).on("mouseover","#contenu *", function(){
@@ -189,9 +122,9 @@ $(document).ready(function (){
 </script>
 
 <body>
-
-<div id="contenu">
-	
+<div class="site-container">
+	<div id="contenu">
+		
+	</div>
 </div>
-
 </body>
