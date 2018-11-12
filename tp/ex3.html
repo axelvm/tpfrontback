@@ -1,0 +1,133 @@
+<script src="jquery-3.3.1.min.js"></script>
+<style>
+
+#contenu *  {
+	padding:3px;
+	margin:3px;
+	border:none;
+	resize:none;
+	width:90%;
+}
+
+#contenu textarea {
+	border:1px solid black;
+}
+
+#contenu p:hover {
+	border:1px dashed black; 
+	cursor:pointer;
+}
+</style>
+
+
+<script>
+
+// Paragraphe modèle : 
+// SOL1 ) on peut lui associer des interactions 
+// Attention au moment du clonage !!
+// SOL2 ) on peut utiliser $(document).on(...)
+var jP= $("<p>").html("Nouveau");
+
+
+$(document).ready(function (){
+	// traitements d'initialisation
+
+	// 1) ajouter les éléments d'interaction à la page 
+	// Leur structure : <+><input text>
+	var jT = $("<input type='text' />"); 
+	var jPlus = $("<input type='button'/>")
+				.val("+")
+				.click(function(){
+			//  gestionnaire d'évnt sur click sur btn +
+			// ici, $(this) dénote le bouton cliqué 
+			// $(this).next() dénote donc le champ d'entrée texte
+			// $(this).next().val() est son contenu 
+
+			// Récupération du contenu du champ texte			
+			var contenu = $(this).next().val(); 
+			$(this).next().val(""); // puis on le vide 
+
+			// on insère un nouveau P avec ce contenu 
+			var jNextP = jP.clone(); 
+			if (contenu) jNextP.html(contenu);
+			$("#contenu").prepend(jNextP); 
+		});  
+
+	$("#contenu").before(jPlus); // insertion dans le DOM 
+	jPlus.after(jT); // ajout champ texte après le bouton 
+
+
+	// 2)  Passage en mode édition des P. insérés 
+	// clic => le P. se transforme en textarea avec le mm contenu 
+	// "ENTREE" => le textarea redevient un P. avec le mm contenu 
+
+	// Réagir aux clicks sur les P. (y compris futurs !) 
+	$(document).on("click","#contenu p", function (){
+		// fonction appelee lors d'un clic sur un P
+		// dans le div de contenu 
+		var contenu = $(this).html(); // recup contenu 
+		var jTa = $("<textarea>")
+					.val(contenu)
+					.data("contenuInitial",contenu); 
+		// prépa txtarea
+		// AJOUT d'une méta-donnée 
+		
+		$(this).replaceWith(jTa); // insertion txtarea
+		jTa.focus(); // .select();
+		
+	}); 
+
+	// Réagir aux appuis sur ENTREE dans les txtarea 
+	$(document).on(	"keydown",
+					"#contenu textarea", 
+					function (contexte){
+		// quelle est la touche appuyée ??
+		// en JQuery, tous les gestionnaires d'evenements 
+		// sont destinataires d'un objet event en param. 
+		// prop code ascii de la touche : code vaudra "Enter"
+		
+		console.log(contexte.which);
+		if (contexte.which != 13) return ;
+
+		var contenu = $(this).val(); // recup contenu 
+		var jPar = $("<p>").html(contenu); // prépa P
+		$(this).replaceWith(jPar); // insertion P
+	}); 
+
+
+	// 3) "ESC" => toutes les éditions en cours sont annulées
+	// les contenus des textarea sont restaurés aux valeurs
+	// initiales - elles avaient été stockées par la méthode .data()
+	// itérer sur un ensemble : $(sel).each(fonction)
+
+	$(document).keyup(function(contexte){
+		if (contexte.which != 27) return;
+
+		// parcours de tous les textarea
+		$("#contenu textarea").each(function(){
+			// $(this) dénote le txtarea en cours de parcours
+			// permet de récupérer le contenu initial 
+			var contenu = $(this).data("contenuInitial") ; 			
+			var jPar = $("<p>").html(contenu); // prépa P
+			$(this).replaceWith(jPar); // insertion P
+		});  
+
+	});
+
+	// DEBUG 
+	$(document).on("mouseover","#contenu *", function(){
+		console.log($(this).data());
+	});
+
+});
+
+
+
+</script>
+
+<body>
+
+<div id="contenu">
+</div>
+
+</body>

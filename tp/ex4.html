@@ -1,0 +1,173 @@
+<script src="jquery-3.3.1.min.js"></script>
+<link rel="stylesheet" href="jquery-ui-1.12.1.custom/jquery-ui.min.css">
+<script src="jquery-ui-1.12.1.custom/external/jquery/jquery.js"></script>
+<script src="jquery-ui-1.12.1.custom/jquery-ui.min.js"></script>
+<style>
+
+#contenu *  {
+	padding:3px;
+	margin:3px;
+	border:none;
+	resize:none;
+	width:90%;
+}
+
+#contenu textarea {
+	border:1px solid black;
+}
+
+#contenu p:hover {
+	border:1px dashed black; 
+	cursor:pointer;
+}
+.btnPlus {
+	display:inline; 
+}
+.red *{ color:red;}
+.blue *{ color:blue;}
+</style>
+
+
+<script>
+
+$( "#mySliderDiv" ).slider({
+    orientation: "vertical",
+    min: 0,
+    max: 150,
+    value: 50
+});
+
+// TODO : préparer un "composant" boutonPlus
+// qui insère des P. en position haute ou basse 
+// suivant une méta-donnée "position"
+
+var jP= $("<p>").html("Nouveau");
+
+var composantBtnP = $("<div>")
+		.addClass("btnPlus")
+		.data("top",true)
+		.append(
+				$("<input type='button'/>")
+				.val("+")
+				.click(function(){
+					var contenu = $(this).next().val(); 
+					$(this).next().val("");
+					var jNextP = jP.clone(); 
+					if (contenu) jNextP.html(contenu);
+
+					// la zone d'insertion 
+					// dépend de la méta-donnée "top"
+					// portée par le composant 
+					if ($(this).parent().data("top"))
+						$("#contenu").prepend(jNextP); 
+					else 
+						$("#contenu").append(jNextP); 
+				})
+		)
+		.append(
+				$("<input type='text' />")
+		); 
+
+
+$(document).ready(function (){
+	// traitements d'initialisation
+
+	// 1) ajouter les éléments d'interaction à la page 
+	$("#contenu")
+		.before(composantBtnP
+					.clone(true)
+					.addClass("red")
+					.css({	"border":"1px solid red", 
+							"padding": "5px" ,
+							"margin" : "5px"})
+		)
+		/*.after(composantBtnP
+					.clone(true)
+					.addClass("blue")
+					.data("top",false)
+		); */
+
+	// 2)  Passage en mode édition des P. insérés 
+	// clic => le P. se transforme en textarea avec le mm contenu 
+	// "ENTREE" => le textarea redevient un P. avec le mm contenu 
+
+	// Réagir aux clicks sur les P. (y compris futurs !) 
+	$(document).on("click","#contenu p", function (){
+		// fonction appelee lors d'un clic sur un P
+		// dans le div de contenu 
+		var contenu = $(this).html(); // recup contenu 
+		var jTa = $("<textarea>")
+					.val(contenu)
+					.data("contenuInitial",contenu); 
+		// prépa txtarea
+		// AJOUT d'une méta-donnée 
+		
+		$(this).replaceWith(jTa); // insertion txtarea
+		jTa.focus(); // .select();
+		
+	}); 
+	
+    $("#contenu" ).sortable({
+      revert: true
+    });
+
+	// Réagir aux appuis sur ENTREE dans les txtarea 
+	$(document).on(	"keydown", "#contenu textarea", function (contexte){
+		// quelle est la touche appuyée ??
+		// en JQuery, tous les gestionnaires d'evenements 
+		// sont destinataires d'un objet event en param. 
+		// prop code ascii de la touche : code vaudra "Enter"
+		
+		console.log(contexte.which);
+		if (contexte.which != 13) return ;
+
+		var contenu = $(this).val(); // recup contenu 
+		var jPar = $("<p>").html(contenu); // prépa P
+		$(this).replaceWith(jPar); // insertion P
+	}); 
+
+
+	// 3) "ESC" => toutes les éditions en cours sont annulées
+	// les contenus des textarea sont restaurés aux valeurs
+	// initiales - elles avaient été stockées par la méthode .data()
+	// itérer sur un ensemble : $(sel).each(fonction)
+
+	$(document).keyup(function(contexte){
+		if (contexte.which != 27) return;
+
+		// parcours de tous les textarea
+		$("#contenu textarea").each(function(){
+			// $(this) dénote le txtarea en cours de parcours
+			// permet de récupérer le contenu initial 
+			var contenu = $(this).data("contenuInitial") ; 			
+			var jPar = $("<p>").html(contenu); // prépa P
+			$(this).replaceWith(jPar); // insertion P
+		});  
+
+	});
+
+
+	//fonction de trie des commentaires en jQuery UI
+	/*$( function() {
+    $( "#contenu" ).sortable({
+      revert: true
+    });*/
+
+	// DEBUG 
+	$(document).on("mouseover","#contenu *", function(){
+		console.log($(this).data());
+	});
+
+});
+
+
+
+</script>
+
+<body>
+
+<div id="contenu">
+
+</div>
+
+</body>
