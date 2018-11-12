@@ -12,46 +12,88 @@
 
 var jP= $("<div>").html("<p>Nouveau</p>").addClass("zoneComment");
 
+    var resources_address = 'http://localhost/yves/yves/tpfrontback/resources/';
+    var address_update = 'http://localhost/yves/yves/tpfrontback/resources/data.php?action=updateP&id=2&contenu=test';
+    var address_getP = 'http://localhost/yves/yves/tpfrontback/resources/data.php?action=getP'
 
-//Composant Bouton Plus qui insère les divs contenant les commentaires
-var composantBtnP = $("<div>")
-		.addClass("btnPlus row")
-		.data("top",true)
-		.append($("<input class='btn btn-info col-sm-2 offset-2' type='button'/>")
-				.val("+")
-				.click(function(){
-					var contenu = $(this).next().val(); 
-					$(this).next().val("");
-					var jNextP = jP.clone();
+    // TODO : préparer un "composant" boutonPlus
+    // qui insère des P. en position haute ou basse
+    // suivant une méta-donnée "position"
 
-					if (contenu) jNextP.html("<p>"+ contenu +"</p>");
+
+    var jP = $("<p>").html("Nouveau");
+
+    var btn2 = $("<div>")
+        .addClass("btn2")
+        .append(
+            $("<input type='button'/>")
+                .val("+")
+                .click(function () {
+                    $.get(address_getP, function (data) {
+                        var table = JSON.parse(data);
+                        $.each(table.paragraphes, function (index, element) {
+                            $("#contenu").append(jP.clone().html(element.contenu));
+                        });
+                    })
+                }));
+
+					// la zone d'insertion 
+					// dépend de la méta-donnée "top"
+					// portée par le composant 
 					if ($(this).parent().data("top"))
 						$("#contenu").prepend(jNextP); 
 					else 
 						$("#contenu").append(jNextP); 
-					jNextP.append("<img class='croix' src='resources/croix.png' />"); //insertion de la croix pouvant supprimer le commentaire
 				})
-				
 		)
-		.append(//Champs texte permettant d'écrire le commentaire
-				$("<input class='col-sm-5 form-control' type='text' placeholder='ecrivez un commentaire'/>")
-		);
-	
+		.append(
+				$("<input type='text' />")
+		); 
 
+    var composantBtnP = $("<div>")
+        .addClass("btnPlus")
+        .data("top", true)
+        .append(
+            $("<input type='button'/>")
+                .val("+")
+                .click(function () {
+                    var contenu = $(this).next().val();
+                    $(this).next().val("");
+                    var jNextP = jP.clone();
+                    if (contenu) jNextP.html(contenu);
 
-$(document).ready(function (){
-	// traitements d'initialisation
+                    // la zone d'insertion
+                    // dépend de la méta-donnée "top"
+                    // portée par le composant
+                    if ($(this).parent().data("top"))
+                        $("#contenu").prepend(jNextP);
+                    else
+                        $("#contenu").append(jNextP);
+                })
+        )
+        .append(
+            $("<input type='text' />")
+        );
 
 	// 1) ajouter les éléments d'interaction à la page 
 	$("#contenu")
 		.before(composantBtnP.clone(true)
 		)
 
-
 	// 2)  Passage en mode édition des P. insérés 
 	// clic => le P. se transforme en textarea avec le mm contenu 
 	// "ENTREE" => le textarea redevient un P. avec le mm contenu 
 
+        $(document).ready(function () {
+            $.get(address_getP, function (data) {
+                var table = JSON.parse(data);
+                $.each(table.paragraphes, function (index, element) {
+                        $("#contenu").append(jP.clone(true).html(element.contenu));
+                    }
+                )
+                ;
+            })
+        });
 	// Réagir aux clicks sur les P. (y compris futurs !) 
 	$(document).on("click","#contenu p", function (){
 		// fonction appelee lors d'un clic sur un P
@@ -85,38 +127,64 @@ $(document).ready(function (){
 		$(this).replaceWith(jPar); // insertion P
 	}); 
 
+            $(this).replaceWith(jTa); // insertion txtarea
+            jTa.focus(); // .select();
 
 	// si la touche "ESC" => toutes les éditions en cours sont annulées
 	// les contenus des textarea sont restaurés aux valeurs
 	// initiales - elles avaient été stockées par la méthode .data()
 
-	$(document).keyup(function(contexte){
-		if (contexte.which != 27) return;
+        $("#contenu").sortable({
+            revert: true
+        });
 
-		// parcours de tous les textarea
-		$("#contenu textarea").each(function(){
-			// $(this) dénote le txtarea en cours de parcours
-			// permet de récupérer le contenu initial 
-			var contenu = $(this).data("contenuInitial") ; 			
-			var jPar = $("<p>").html(contenu); // prépa P
-			$(this).replaceWith(jPar); // insertion P
-		});  
+        // Réagir aux appuis sur ENTREE dans les txtarea
+        $(document).on("keydown", "#contenu textarea", function (contexte) {
+            // quelle est la touche appuyée ??
+            // en JQuery, tous les gestionnaires d'evenements
+            // sont destinataires d'un objet event en param.
+            // prop code ascii de la touche : code vaudra "Enter"
 
-	});
+            console.log(contexte.which);
+            if (contexte.which != 13) return;
 
-	//fonction permettant de supprimer un commentaire
 
 	$(document).on("click", ".croix", function(){
 		console.log("on supprime le commentaire");
 	});
 
-	// DEBUG 
-	$(document).on("mouseover","#contenu *", function(){
-		console.log($(this).data());
-	});
+        // 3) "ESC" => toutes les éditions en cours sont annulées
+        // les contenus des textarea sont restaurés aux valeurs
+        // initiales - elles avaient été stockées par la méthode .data()
+        // itérer sur un ensemble : $(sel).each(fonction)
 
-});
+        $(document).keyup(function (contexte) {
+            if (contexte.which != 27) return;
 
+            // parcours de tous les textarea
+            $("#contenu textarea").each(function () {
+                // $(this) dénote le txtarea en cours de parcours
+                // permet de récupérer le contenu initial
+                var contenu = $(this).data("contenuInitial");
+                var jPar = $("<p>").html(contenu); // prépa P
+                $(this).replaceWith(jPar); // insertion P
+            });
+
+        });
+
+
+        //fonction de trie des commentaires en jQuery UI
+        /*$( function() {
+        $( "#contenu" ).sortable({
+          revert: true
+        });*/
+
+        // DEBUG
+        $(document).on("mouseover", "#contenu *", function () {
+            console.log($(this).data());
+        });
+
+    });
 
 
 </script>
