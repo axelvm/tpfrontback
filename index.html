@@ -14,30 +14,36 @@
     var jP = $("<div>").html("<p>Nouveau</p>").addClass("zoneComment");
 
     function add_contenu(contenu) {
-        // ajoute le contenu j'espere
-        // ne fait que prepend
         var jNextP = jP.clone();
         if (contenu) {
             jNextP.html("<p>" + contenu + "</p>");
             var address = resources_address + "data.php?action=addP&ordre=1&contenu=" + contenu + "";
             console.log("passe par if de add contenu");
             console.log(address);
-            $.get(address, function () {
+            $.get(address, function (data) {
+                var table = JSON.parse(data);
                 console.log("nouvelle entre dans la bdd");
+                jNextP.attr('id', table.id);
             });
         }
         else {
-            $.post(resources_address + "data.php?action=addP&ordre=1&contenu=" + "Nouveau", function () {
+            $.get(resources_address + "data.php?action=addP&ordre=1&contenu=" + "Nouveau", function (data) {
+                table = JSON.parse(data);
+                jNextP.attr('id', table.id);
                 console.log("nouveau contenu par defaut dans la bdd");
             });
 
         }
         $("#contenu").prepend(jNextP);
         jNextP.append("<img class='croix' src='resources/croix.png' />"); //insertion de la croix pouvant supprimer le commentaire
-
     }
 
-    //Composant Bouton Plus qui insère les divs contenant les commentaires
+    function maj_contenu(div) {
+        $(div).children('p').each(function (index, element) {
+            var ordre = index + 1
+
+        });
+    }
     var composantBtnP = $("<div>")
         .addClass("btnPlus row")
         .data("top", true)
@@ -54,17 +60,13 @@
         );
 
 
+
     // 1) ajouter les éléments d'interaction à la page
     $(document).ready(function () {
         $("#contenu")
             .before(composantBtnP.clone(true)
             );
     });
-
-
-    // 2)  Passage en mode édition des P. insérés
-    // clic => le P. se transforme en textarea avec le mm contenu
-    // "ENTREE" => le textarea redevient un P. avec le mm contenu
 
     $(document).ready(function () {
         $.get(address_getP, function (data) {
@@ -78,27 +80,19 @@
             ;
         })
     });
-    // Réagir aux clicks sur les P. (y compris futurs !)
+
     $(document).on("click", "#contenu p", function () {
-        // fonction appelee lors d'un clic sur un P
-        // dans le div de contenu
-        var contenu = $(this).html(); // recup contenu
+        var contenu = $(this).html();
         var jTa = $("<textarea class='form-control'>")
             .val(contenu)
             .data("contenuInitial", contenu);
-        // prépa txtarea
-        // AJOUT d'une méta-donnée
-        $(this).replaceWith(jTa); // insertion txtarea
+
+        $(this).replaceWith(jTa);
         jTa.select();
     });
 
 
-    // Réagir aux appuis sur ENTREE dans les txtarea
     $(document).on("keydown", "#contenu textarea", function (contexte) {
-
-        //afficher le code de la touche appuyée
-        //console.log(contexte.which);
-        //insérer le nouveau contenu si la touche ENTRER est appuyée pendant la réédition
         if (contexte.which != 13) return;
         var contenu = $(this).val(); // recup contenu
         var jPar = $("<p>").html(contenu); // prépa P
@@ -106,35 +100,18 @@
         // TODO maj de la bdd
     });
 
-    // Réagir aux appuis sur ENTREE dans les txtarea
     $(document).on("keydown", "#contenu textarea", function (contexte) {
-        // quelle est la touche appuyée ??
-        // en JQuery, tous les gestionnaires d'evenements
-        // sont destinataires d'un objet event en param.
-        // prop code ascii de la touche : code vaudra "Enter"
-
         console.log(contexte.which);
         if (contexte.which != 13) return;
-
-
-        $(document).on("click", ".croix", function () {
+        $(document).on("click",    // Réagir aux appuis sur ENTREE dans les txtarea
+            ".croix", function () {
             console.log("on supprime le commentaire");
         });
 
-        // 3) "ESC" => toutes les éditions en cours sont annulées
-        // les contenus des textarea sont restaurés aux valeurs
-        // initiales - elles avaient été stockées par la méthode .data()
-        // itérer sur un ensemble : $(sel).each(fonction)
-        // ======
-        //     =
 
         $(document).keyup(function (contexte) {
             if (contexte.which != 27) return;
-
-            // parcours de tous les textarea
             $("#contenu textarea").each(function () {
-                // $(this) dénote le txtarea en cours de parcours
-                // permet de récupérer le contenu initial
                 var contenu = $(this).data("contenuInitial");
                 var jPar = $("<p>").html(contenu); // prépa P
                 $(this).replaceWith(jPar); // insertion P
@@ -142,14 +119,6 @@
 
         });
 
-
-        //fonction de trie des commentaires en jQuery UI
-        /*$( function() {
-        $( "#contenu" ).sortable({
-          revert: true
-        });*/
-
-        // DEBUG
         $(document).on("mouseover", "#contenu *", function () {
             console.log($(this).data());
         });
